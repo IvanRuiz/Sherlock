@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <script>
+        var event_time = 0.0;
+        var simulation_time = 5.1;
+        var agents = [];
+        var messages = [];
+        var cont = 0;
+
+         ///SIMULATION-START
+        function simulation() {
+
+            addserver(1, "A", 0, 0); // ADD TEST SERVERS
+            addserver(2, "B", 0, 0);
+
+            addlink(1, 2, 10, 8, 0.5);// ADD TEST LINKS
+            addlink(2, 1, 3, 4, 0.7);
+
+            timer();
+        } ///SIMULATION-END
+
+         ///TIMER-START
+        function timer() {
+
+            if (event_time < simulation_time) {
+
+                timeStep();
+
+                event_time += 0.1;
+
+                setTimeout(timer, 8000);
+
+            }
+        } ///TIMER-END
+
+         ///TIMESTEP-START
+        function timeStep() {
+
+            print_console();
+            process();
+
+
+        } ///TIMESTEP-END
+
+         ///CONSOLE VISUALIZATION
+
+        function print_console() {
+
+            print_agents();
+            print_messages();
+            print_timeStep();
+
+        }
+
+        function print_timeStep() {
+
+            console.log(event_time.toFixed(1) + "|");
+        }
+
+        function print_agents() {
+            var i;
+            for (i = 0; i < agents.length; i++) {
+                console.log(agents[i]);
+            }
+        }
+
+        function print_messages() {
+            var i;
+            for (i = 0; i < messages.length; i++) {
+                console.log(messages[i]);
+            }
+        }
+
+        function addserver(id, name, cpu, memory) {
+
+            var server = {
+                id: 0,
+                name: "",
+                cpu: 0,
+                memory: 0,
+                link_in: 0,
+                link_out: 0
+            };
+
+            server.id = id;
+            server.name = name;
+            server.cpu = cpu;
+            server.memory = memory;
+
+            agents.push(server);
+
+        }
+
+        function addlink(id_server_a, id_server_b, cpu, memory, time) {
+            var link = {
+                id_server_a: 0,
+                id_server_b: 0,
+                cpu: 0,
+                memory: 0,
+                time: 0,
+                status: 0
+            };
+
+            link.id_server_a = id_server_a;
+            link.id_server_b = id_server_b;
+            link.cpu = cpu;
+            link.memory = memory;
+            link.time = time;
+
+
+            messages.push(link);
+
+        }
+
+
+        function process() {
+
+
+            if (agents.length > 0) {
+
+
+            } else {
+
+                console.log("NO SERVERS");
+
+            }
+
+            if (messages.length > 0) {
+
+                process_messages();
+
+            } else {
+
+                console.log("NO LINKS");
+
+            }
+
+        }
+
+        function process_messages() {
+
+            decreases_link_time();
+
+            run_messages();
+
+            pop_link_completed();
+
+        }
+
+        function run_messages() {
+
+            var i;
+
+            for (i = 0; i < messages.length; i++) {
+
+                var id_a = messages[i].id_server_a;
+                var id_b = messages[i].id_server_b;
+
+                var index_server_a = find_server(id_a);
+                var index_server_b = find_server(id_b);
+
+                update_servers_status(index_server_a, index_server_b, messages[i].cpu, messages[i].memory, messages[i].status);
+
+                messages[i].status = 1;
+
+            }
+
+        }
+
+
+        function update_servers_status(index_server_a, index_server_b, link_cpu, link_memory, link_status) {
+
+            if (link_status != 1) {
+
+                agents[index_server_a].link_out++;
+                agents[index_server_b].link_in++;
+
+                agents[index_server_b].cpu += link_cpu;
+                agents[index_server_b].memory += link_memory;
+
+            }
+
+        }
+
+
+
+        function find_server(id_server) {
+
+            var i;
+
+            for (i = 0; i < agents.length; i++) {
+
+
+                if (agents[i].id == id_server) {
+
+                    return i;
+                    break;
+
+                }
+
+            }
+
+        }
+
+        function pop_link_completed() {
+
+            var i;
+
+            for (i = 0; i < messages.length; i++) {
+
+                if (messages[i].time <= 0) {
+
+                    delete_link_process(messages[i]);
+
+                    messages.splice(i, 1);
+
+                }
+            }
+
+        }
+
+        function delete_link_process(link) {
+
+            var id_a = link.id_server_a;
+            var id_b = link.id_server_b;
+            var index_server_b = find_server(id_b);
+            var index_server_a = find_server(id_a);
+
+            agents[index_server_b].cpu -= link.cpu;
+            agents[index_server_b].memory -= link.memory;
+            agents[index_server_b].link_in--;
+            agents[index_server_a].link_out--;
+
+        }
+
+        function decreases_link_time() {
+
+            var i;
+
+            for (i = 0; i < messages.length; i++) {
+                messages[i].time -= 0.1;
+            }
+
+        }
+    </script>
+
+</body>
+
+</html>
